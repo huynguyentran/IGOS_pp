@@ -7,6 +7,14 @@ model and a data loader.
 import torchvision.models as models
 from torch.autograd import Variable
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+
+retfound_mae_dir = os.path.join(parent_dir, 'RETFound_MAE')
+sys.path.append(retfound_mae_dir)
+import models_vit
+
 from args import init_args
 from utils import *
 from methods_helper import *
@@ -155,6 +163,14 @@ if __name__ == "__main__":
     
     elif args.model == 'yolov3spp':
         model = yolov3spp(url = args.model_file)
+        model = model.to('cuda')
+        
+    elif args.model == 'retfound':
+        model = models_vit.__dict__['vit_large_patch16'](
+            num_classes=2,
+            drop_path_rate=0.2,
+            global_pool=True,
+        )
         model = model.to('cuda')
 
     else:
