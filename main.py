@@ -3,17 +3,11 @@ main file to call the explanations methods and run experiments, given a pre-trai
 model and a data loader.
 © copyright Tyler Lawson, Saeed khorram. https://github.com/saeed-khorram/IGOS
 """
-
+import sys
+import os
+sys.path.append('/usr/local/lib/python3.7/site-packages')
 import torchvision.models as models
 from torch.autograd import Variable
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-
-
-retfound_mae_dir = os.path.join(parent_dir, 'RETFound_MAE')
-sys.path.append(retfound_mae_dir)
-import models_vit
 
 from args import init_args
 from utils import *
@@ -22,6 +16,17 @@ from methods import IGOS, iGOS_p, iGOS_pp
 from detectors.m_rcnn import m_rcnn
 from detectors.f_rcnn import f_rcnn
 from detectors.yolo import yolov3spp
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+
+retfound_mae_dir = os.path.join(parent_dir, 'RETFound_MAE')
+sys.path.append(retfound_mae_dir)
+import models_vit
+from util.pos_embed import interpolate_pos_embed
+from timm.models.layers import trunc_normal_
 
 def gen_explanations(model, dataloader, args):
 
@@ -171,6 +176,21 @@ if __name__ == "__main__":
             drop_path_rate=0.2,
             global_pool=True,
         )
+
+        weight_path = args.model_file
+        # load RETFound weights
+        checkpoint = torch.load(weight_path, map_location='cpu')
+        checkpoint_model = checkpoint['model']
+        state_dict = model.state_dict()
+        for k in ['head.weight', 'head.bias']:
+            if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
+                print(f"Removing key {k} from pretrained checkpoint")
+                del checkpoint_model[k]
+
+        interpolate_pos_embed(model, checkpoint_model)
+        msg = model.load_state_dict(checkpoint_model, strict=False)
+        trunc_normal_(model.head.weight, std=2e-5)
+
         model = model.to('cuda')
 
     else:

@@ -222,14 +222,21 @@ def save_heatmaps(masks, images, size, index, index_o, outdir, model_name, box, 
                     np.array((0.0,255.0,255.0)), 
                     thickness = 2,
                     )
-            cv2.putText(overlay, 
-                        classes[labels], 
-                        (int(box[0]), int(box[1] - 5)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 
-                        fontScale = 0.8, 
-                        color = np.array((255.0,255.0,255.0)), 
-                        thickness = 2,
-                        )
+            print(labels)
+            if model_name == 'retfound':
+              int_value = labels.item()
+
+              label_map = {1: 'healthy', 0: 'glaucoma'}
+              # Get the corresponding label from the dictionary
+              labels = label_map.get(int_value, 'unknown')
+            # cv2.putText(overlay, 
+            #             # classes[labels], 
+            #             (int(box[0]), int(box[1] - 5)),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 
+            #             fontScale = 0.8, 
+            #             color = np.array((255.0,255.0,255.0)), 
+            #             thickness = 2,
+            #             )
             plt.imsave(os.path.join(outdir, f'{index+i}_{index_o}_overlay_box.jpg'), overlay)
 
 def save_masks(masks, index, categories, mask_name, outdir):
