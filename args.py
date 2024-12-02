@@ -11,7 +11,7 @@ def init_args():
         '--model',
         metavar='M',
         type=str,
-         choices=['vgg19', 'resnet50', 'm-rcnn', 'f-rcnn', 'yolov3spp', 'retfound'],
+         choices=['vgg19', 'resnet50', 'm-rcnn', 'f-rcnn', 'yolov3spp', 'retfound', 'dinov2'],
         default='resnet50',
         help='The model to use for making predictions.')
     
