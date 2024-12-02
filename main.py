@@ -28,6 +28,10 @@ import models_vit
 from util.pos_embed import interpolate_pos_embed
 from timm.models.layers import trunc_normal_
 
+dinov2_dir = os.path.join(parent_dir, 'dinov2_with_attention_extraction')
+sys.path.append(dinov2_dir)
+from dinov2.models.vision_transformer import vit_small, vit_base, vit_large
+
 def gen_explanations(model, dataloader, args):
 
     model.eval()
@@ -192,7 +196,28 @@ if __name__ == "__main__":
         trunc_normal_(model.head.weight, std=2e-5)
 
         model = model.to('cuda')
-
+    elif args.model == 'dinov2':
+        model = vit_base(
+                patch_size=14,
+                img_size=526,
+                init_values=1.0,
+                num_register_tokens=n_register_tokens,
+                block_chunks=0
+        )
+        weight_path = args.model_file
+        state_dict = torch.load(weight_path)
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            if k.startswith('transformer.'):
+                new_key = k[len('transformer.'):]
+            else:
+                new_key = k
+            if not new_key.startswith('classifier.'):
+                new_state_dict[new_key] = v
+        model.load_state_dict(new_state_dict)
+        for p in model.parameters():
+            p.requires_grad = False
+         model = model.to('cuda')
     else:
         raise ValueError("Model not defined.")
 
