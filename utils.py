@@ -223,7 +223,7 @@ def save_heatmaps(masks, images, size, index, index_o, outdir, model_name, box, 
                     thickness = 2,
                     )
             print(labels)
-            if model_name == 'retfound':
+            if model_name == 'retfound' or model_name == 'dinov2':
               int_value = labels.item()
 
               label_map = {1: 'healthy', 0: 'glaucoma'}
